@@ -57,16 +57,16 @@
 ##==========================================================================
 
 # The pre-processor and compiler options.
-MY_CFLAGS = -Wall
+MY_CFLAGS =
 
 # The linker options.
-MY_LIBS   = -pthread -lm
+MY_LIBS   =
 
 # The pre-processor options used by the cpp (man cpp for more).
-CPPFLAGS  = -Wall
+CPPFLAGS  =
 
 # The options used in linking as well as in any direct use of ld.
-LDFLAGS   =  -lm
+LDFLAGS   = -lm
 # The directories in which source files reside.
 # If not specified, only the current directory will be serached.
 SRCDIRS   = .
@@ -80,21 +80,24 @@ PROGRAM   =
 
 # The source file types (headers excluded).
 # .c indicates C source files, and others C++ ones.
-SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp
+SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp .cu
 
 # The header file types.
 HDREXTS = .h .H .hh .hpp .HPP .h++ .hxx .hp
 
 # The pre-processor and compiler options.
 # Users can override those variables from the command line.
-CFLAGS  = -O2 -fopenmp -march=native -std=c99
-CXXFLAGS= -O2 -fopenmp -march=native
+CFLAGS  = -O2
+CXXFLAGS= -O2
 
 # The C program compiler.
-CC     = g++
+CC     = gcc
 
 # The C++ program compiler.
 CXX    = g++
+
+# The CUDA compiler
+CU	= nvcc
 
 # Un-comment the following line to compile C programs as C++ ones.
 #CC     = $(CXX)
@@ -136,8 +139,10 @@ DEPEND      = $(CC)  $(DEP_OPT)  $(MY_CFLAGS) $(CFLAGS) $(CPPFLAGS)
 DEPEND.d    = $(subst -g ,,$(DEPEND))
 COMPILE.c   = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS) -c
 COMPILE.cxx = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c
+COMPILE.cu  = $(CU) $(MY_CUFLAGS) -c
 LINK.c      = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS) $(LDFLAGS)
 LINK.cxx    = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
+LINK.cu     = $(CU) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 
 .PHONY: all objs tags ctags clean distclean help show
 
@@ -146,40 +151,6 @@ LINK.cxx    = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 
 all: $(PROGRAM)
 
-# Rules for creating dependency files (.d).
-#------------------------------------------
-
-%.d:%.c
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.C
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.cc
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.cpp
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.CPP
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.c++
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.cp
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
-
-%.d:%.cxx
-	@echo -n $(dir $<) > $@
-	@$(DEPEND.d) $< >> $@
 
 # Rules for generating object files (.o).
 #----------------------------------------
@@ -187,6 +158,9 @@ objs:$(OBJS)
 
 %.o:%.c
 	$(COMPILE.c) $< -o $@
+
+%.o:%.cu
+	$(COMPILE.cu) $< -o $@
 
 %.o:%.C
 	$(COMPILE.cxx) $< -o $@
@@ -220,13 +194,15 @@ ctags: $(HEADERS) $(SOURCES)
 # Rules for generating the executable.
 #-------------------------------------
 $(PROGRAM):$(OBJS)
-ifeq ($(SRC_CXX),)              # C program
-	$(LINK.c)   $(OBJS) $(MY_LIBS) -o $@
+	$(LINK.cu) $(OBJS) $(MY_LIBS) -o $@
 	@echo Type ./$@ to execute the program.
-else                            # C++ program
-	$(LINK.cxx) $(OBJS) $(MY_LIBS) -o $@
-	@echo Type ./$@ to execute the program.
-endif
+#ifeq ($(SRC_CXX),)              # C program
+#	$(LINK.c)   $(OBJS) $(MY_LIBS) -o $@
+#	@echo Type ./$@ to execute the program.
+#else                            # C++ program
+#	$(LINK.cxx) $(OBJS) $(MY_LIBS) -o $@
+#Y	@echo Type ./$@ to execute the program.
+#endif
 
 ifndef NODEP
 ifneq ($(DEPS),)
