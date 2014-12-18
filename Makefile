@@ -142,7 +142,7 @@ COMPILE.cxx = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c
 COMPILE.cu  = $(CU) $(MY_CUFLAGS) -c
 LINK.c      = $(CC)  $(MY_CFLAGS) $(CFLAGS)   $(CPPFLAGS) $(LDFLAGS)
 LINK.cxx    = $(CXX) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
-LINK.cu     = $(CU) $(MY_CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
+LINK.cu     = $(CU) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 
 .PHONY: all objs tags ctags clean distclean help show
 
