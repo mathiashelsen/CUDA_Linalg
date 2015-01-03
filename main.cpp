@@ -30,14 +30,18 @@ int main(int argc, char **argv)
 	}
     }
 
-    CPUMatAdd(*A, *B, *C);
-    GPUMatAdd(*A, *B, *D);
+    CPUMatMul(*A, *B, *C);
+    GPUMatMul(*A, *B, *D);
 
     for( int i = 0; i < A->cols; i++ )
     {
 	for( int j = 0; j < A->rows; j++ )
 	{
-	    assert( C->elems[i*A->rows + j] == D->elems[i*A->rows + j] );
+	    printf( "%e, %e, %e\n", 
+		C->elems[i*C->rows + j], 
+		D->elems[i*D->rows + j], 
+		C->elems[i*C->rows + j] - D->elems[i*D->rows + j] );
+	    assert( C->elems[i*C->rows + j] == D->elems[i*D->rows + j] );
 	}
     }
     std::cout << "Assertion did not fail." << std::endl;

@@ -70,19 +70,41 @@ void CPUMatAdd(Matrix A, Matrix B, Matrix C)
     }
 }
 
+void GPUMatMul(Matrix A, Matrix B, Matrix C)
+{
+    Matrix a(A.rows, A.cols, MemoryLocationGPU);
+    Matrix b(B.rows, B.cols, MemoryLocationGPU);
+    Matrix c(A.rows, B.cols, MemoryLocationGPU);
+
+    cudaMemcpy( a.elems, A.elems, A.rows*A.cols*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( b.elems, B.elems, B.rows*B.cols*sizeof(float), cudaMemcpyHostToDevice );
+
+    dim3 threadsPerBlock(16, 16);
+    dim3 numBlocks(C.cols/threadsPerBlock.x + 1, C.rows/threadsPerBlock.y + 1);
+
+    MatMulNaiveKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
+
+    cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
+
+    a.free();
+    b.free();
+    c.free();
+}
+
 void CPUMatMul(Matrix A, Matrix B, Matrix C)
 {
-    int i = 0, j = 0, k = 0; 
-    for( i = 0; i < A.cols; i++ )
+    int row = 0, col = 0;
+    for( col = 0; col < C.cols; col++ )
     {
-	for( j = 0; j < A.rows; j++ )
+	for( row = 0; row < C.rows; row++ )
 	{
 	    float sum = 0.0;
-	    for( k = 0; k < A.cols; k++ )
+	    int i = 0;
+	    for( i = 0; i < A.cols; i++ )
 	    {
-		
+		sum += A.elems[i*A.rows + row]*B.elems[col*B.rows + i];
 	    }
-	    C.elems
+	    C.elems[col*C.rows + row] = sum;
 	}
     }
 }
