@@ -19,9 +19,6 @@ void GPUMatAdd(Matrix A, Matrix B, Matrix C)
     int sizeA = A.rows * A.cols * sizeof(float);
 
     Matrix a(A.rows, A.cols, MemoryLocationGPU), b(B.rows, B.cols, MemoryLocationGPU), c(C.rows, C.cols, MemoryLocationGPU);
-    cudaMalloc( &(a.elems), sizeA );
-    cudaMalloc( &(b.elems), sizeA );
-    cudaMalloc( &(c.elems), sizeA );
 
     cudaMemcpy( a.elems, A.elems, sizeA, cudaMemcpyHostToDevice );
     cudaMemcpy( b.elems, B.elems, sizeA, cudaMemcpyHostToDevice );
@@ -32,11 +29,10 @@ void GPUMatAdd(Matrix A, Matrix B, Matrix C)
     MatAdd<<<numBlocks, threadsPerBlock >>>(a, b, c);
     
     cudaMemcpy( C.elems, c.elems, sizeA, cudaMemcpyDeviceToHost ); 
-    
-    cudaFree( a.elems );
-    cudaFree( b.elems );
-    cudaFree( c.elems );
 
+    a.free();
+    b.free();
+    c.free();
 }
 
 void CPUMatAdd(Matrix A, Matrix B, Matrix C)
