@@ -1,10 +1,11 @@
-#ifndef _MATADD_H
-#define _MATADD_H
+#ifndef _BASIC_H_
+#define _BASIC_H_
 
 #include <cuda.h>
-#include "Matrix.h"
 
-//__global__ void MatAdd(Matrix A, Matrix B, Matrix C);
+#include <stdio.h>
+
+#include "Matrix.h"
 
 void GPUMatAdd(Matrix A, Matrix B, Matrix C);
 void CPUMatAdd(Matrix A, Matrix B, Matrix C);

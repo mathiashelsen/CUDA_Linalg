@@ -57,7 +57,9 @@
 ##==========================================================================
 
 # The pre-processor and compiler options.
-MY_CFLAGS = -I/usr/local/cuda-6.5/include -lcuda
+MY_CFLAGS = -I/usr/local/cuda-6.5/include -I.
+
+MY_CUFLAGS = -g
 
 # The linker options.
 MY_LIBS   =
@@ -66,7 +68,7 @@ MY_LIBS   =
 CPPFLAGS  =
 
 # The options used in linking as well as in any direct use of ld.
-LDFLAGS   = -lm
+LDFLAGS   = -lm -L/usr/local/cuda-6.5/lib64
 # The directories in which source files reside.
 # If not specified, only the current directory will be serached.
 SRCDIRS   = .
@@ -87,8 +89,8 @@ HDREXTS = .h .H .hh .hpp .HPP .h++ .hxx .hp
 
 # The pre-processor and compiler options.
 # Users can override those variables from the command line.
-CFLAGS  = -O2
-CXXFLAGS= -O2
+CFLAGS  = -g
+CXXFLAGS= -g
 
 # The C program compiler.
 CC     = gcc

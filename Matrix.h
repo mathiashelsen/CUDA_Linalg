@@ -1,26 +1,25 @@
 #ifndef _MATRIX_H
 #define _MATRIX_H
 
-typedef struct
-{
-    int cols;
-    int rows;
-    float *elems;
-} Matrix;
+#include <cuda.h>
 
-/*template<T> class Matrix
+enum MemoryLocation
 {
-    int rows;
-    int cols;
-    T	*elems;
-
-    public:
-	Matrix(int _rows, int _cols);
-	~Matrix();
-	void operator+=(S B);
-	void operator*=(S B);
+    MemoryLocationCPU, 
+    MemoryLocationGPU
 };
-*/
-//void InvokeMatMul(Matrix *A, Matrix *B, Matrix *C);
+
+class Matrix
+{
+public:
+    int rows;
+    int cols;
+    float *elems;
+    MemoryLocation loc;
+
+    Matrix(int _rows, int _cols, MemoryLocation _loc);
+    ~Matrix();
+    void free();
+};
 
 #endif 

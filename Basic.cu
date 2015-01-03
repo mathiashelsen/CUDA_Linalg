@@ -1,5 +1,5 @@
-#include "MatAdd.h"
-#include "MatAdd.cuh"
+#include "Basic.h"
+#include "Basic.cuh"
 
 __global__ void MatAdd(Matrix A, Matrix B, Matrix C)
 {
@@ -16,23 +16,15 @@ __global__ void MatAdd(Matrix A, Matrix B, Matrix C)
 
 void GPUMatAdd(Matrix A, Matrix B, Matrix C)
 {
-    int sizeA;
-    Matrix a, b, c;
+    int sizeA = A.rows * A.cols * sizeof(float);
 
-    a.cols = A.cols;
-    a.rows = A.rows;
-    sizeA = a.cols*a.rows*sizeof(float);
+    Matrix a(A.rows, A.cols, MemoryLocationGPU), b(B.rows, B.cols, MemoryLocationGPU), c(C.rows, C.cols, MemoryLocationGPU);
     cudaMalloc( &(a.elems), sizeA );
-    cudaMemcpy( a.elems, A.elems, sizeA, cudaMemcpyHostToDevice );
-
-    b.cols = B.cols;
-    b.rows = B.rows;
     cudaMalloc( &(b.elems), sizeA );
-    cudaMemcpy( b.elems, B.elems, sizeA, cudaMemcpyHostToDevice );
-
-    c.cols = C.cols;
-    c.rows = C.rows;
     cudaMalloc( &(c.elems), sizeA );
+
+    cudaMemcpy( a.elems, A.elems, sizeA, cudaMemcpyHostToDevice );
+    cudaMemcpy( b.elems, B.elems, sizeA, cudaMemcpyHostToDevice );
 
     dim3 threadsPerBlock(16, 16);
     dim3 numBlocks(A.cols/threadsPerBlock.x + 1, A.rows/threadsPerBlock.y + 1);
@@ -40,10 +32,11 @@ void GPUMatAdd(Matrix A, Matrix B, Matrix C)
     MatAdd<<<numBlocks, threadsPerBlock >>>(a, b, c);
     
     cudaMemcpy( C.elems, c.elems, sizeA, cudaMemcpyDeviceToHost ); 
-
+    
     cudaFree( a.elems );
     cudaFree( b.elems );
     cudaFree( c.elems );
+
 }
 
 void CPUMatAdd(Matrix A, Matrix B, Matrix C)

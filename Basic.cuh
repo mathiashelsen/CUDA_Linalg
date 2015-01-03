@@ -1,5 +1,5 @@
-#ifndef _MATADD_CUH
-#define _MATADD_CUH
+#ifndef _BASIC_CUH
+#define _BASIC_CUH
 
 #include <cuda.h>
 #include "Matrix.h"
