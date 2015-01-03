@@ -57,7 +57,7 @@
 ##==========================================================================
 
 # The pre-processor and compiler options.
-MY_CFLAGS =
+MY_CFLAGS = -I/usr/local/cuda-6.5/include -lcuda
 
 # The linker options.
 MY_LIBS   =

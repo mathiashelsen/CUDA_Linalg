@@ -1,10 +1,13 @@
+#include <assert.h>
 #include <iostream>
 #include <stdlib.h>
-#include "Matrix.h"
-#include "CPUMatMul.h"
 
-#include <boost/random/uniform_01.hpp>
 #include <boost/random.hpp>
+#include <boost/random/uniform_01.hpp>
+
+#include "CPUMatMul.h"
+#include "MatAdd.h"
+#include "Matrix.h"
 
 using namespace std;
 
@@ -24,6 +27,10 @@ int main(int argc, char **argv)
     C.cols = N;
     C.rows = N;
     C.elems = new float[N*N];
+    Matrix D;
+    D.cols = N;
+    D.rows = N;
+    D.elems = new float[N*N];
 
     boost::random::mt19937 rng; 
     boost::random::uniform_01<> dist;
@@ -36,7 +43,17 @@ int main(int argc, char **argv)
 	}
     }
 
-    CPUMatMul(&A, &B, &C);
+    CPUMatAdd(A, B, C);
+    GPUMatAdd(A, B, D);
+
+    for( int i = 0; i < A.cols; i++ )
+    {
+	for( int j = 0; j < A.rows; j++ )
+	{
+	    assert( C.elems[i*A.rows + j] == D.elems[i*A.rows + j] );
+	}
+    }
+    std::cout << "Assertion did not fail." << std::endl;
 
     delete[] A.elems;
     delete[] B.elems;
