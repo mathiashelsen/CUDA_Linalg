@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     Matrix *B = new Matrix(N, N, MemoryLocationCPU);
     Matrix *C = new Matrix(N, N, MemoryLocationCPU);
     Matrix *D = new Matrix(N, N, MemoryLocationCPU);
+    Matrix *E = new Matrix(N, N, MemoryLocationCPU);
 
     boost::random::mt19937 rng; 
     boost::random::uniform_01<> dist;
@@ -44,9 +45,17 @@ int main(int argc, char **argv)
     CPUMatMul(*A, *B, *C);
     stop = GetTimeStamp();
     std::cout << "Done on CPU, runtime = " << stop-start << " us" << std::endl;
+
+
     std::cout << "Starting GPU Matrix Multiplication" << std::endl;
     start = GetTimeStamp();
     GPUMatMul(*A, *B, *D);
+    stop = GetTimeStamp();
+    std::cout << "Done on GPU, runtime = " << stop-start << " us" << std::endl;
+
+    std::cout << "Starting Naive GPU Matrix Multiplication" << std::endl;
+    start = GetTimeStamp();
+    GPUMatMulNaive(*A, *B, *E);
     stop = GetTimeStamp();
     std::cout << "Done on GPU, runtime = " << stop-start << " us" << std::endl;
 
