@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <iostream>
+#include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include <boost/random.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -10,9 +12,16 @@
 
 using namespace std;
 
+uint64_t GetTimeStamp() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}
+
 int main(int argc, char **argv)
 {
-    int N = 64;
+    uint64_t start = 0, stop = 0;
+    int N = 1024;
 
     Matrix *A = new Matrix(N, N, MemoryLocationCPU);
     Matrix *B = new Matrix(N, N, MemoryLocationCPU);
@@ -31,11 +40,15 @@ int main(int argc, char **argv)
     }
 
     std::cout << "Starting CPU Matrix Multiplication" << std::endl;
+    start = GetTimeStamp();
     CPUMatMul(*A, *B, *C);
-    std::cout << "Done on CPU" << std::endl;
+    stop = GetTimeStamp();
+    std::cout << "Done on CPU, runtime = " << stop-start << " us" << std::endl;
     std::cout << "Starting GPU Matrix Multiplication" << std::endl;
+    start = GetTimeStamp();
     GPUMatMul(*A, *B, *D);
-    std::cout << "Done on GPU" << std::endl;
+    stop = GetTimeStamp();
+    std::cout << "Done on GPU, runtime = " << stop-start << " us" << std::endl;
 
     std::cout << "Comparing both results" << std::endl;
 
@@ -43,11 +56,11 @@ int main(int argc, char **argv)
     {
 	for( int j = 0; j < A->rows; j++ )
 	{
-	    printf( "%e, %e, %e\n", 
+	    /*printf( "%e, %e, %e\n", 
 		C->elems[i*C->rows + j], 
 		D->elems[i*D->rows + j], 
-		C->elems[i*C->rows + j] - D->elems[i*D->rows + j] );
-	    assert( fabs(C->elems[i*C->rows + j] - D->elems[i*D->rows + j]) < 1.0e-5 );
+		C->elems[i*C->rows + j] - D->elems[i*D->rows + j] );*/
+	    assert( fabs(C->elems[i*C->rows + j] - D->elems[i*D->rows + j]) < 1.0e-3 );
 	}
     }
     std::cout << "Assertion did not fail." << std::endl;

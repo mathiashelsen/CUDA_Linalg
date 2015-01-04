@@ -10,6 +10,7 @@
 void GPUMatAdd(Matrix A, Matrix B, Matrix C);
 void CPUMatAdd(Matrix A, Matrix B, Matrix C);
 void GPUMatMul(Matrix A, Matrix B, Matrix C);
+void GPUMatMulNaive(Matrix A, Matrix B, Matrix C);
 void CPUMatMul(Matrix A, Matrix B, Matrix C);
 
 #endif

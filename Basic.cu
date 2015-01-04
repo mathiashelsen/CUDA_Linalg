@@ -100,6 +100,29 @@ void CPUMatAdd(Matrix A, Matrix B, Matrix C)
     }
 }
 
+void GPUMatMulNaive(Matrix A, Matrix B, Matrix C)
+{
+    Matrix a(A.rows, A.cols, MemoryLocationGPU);
+    Matrix b(B.rows, B.cols, MemoryLocationGPU);
+    Matrix c(A.rows, B.cols, MemoryLocationGPU);
+
+    cudaMemcpy( a.elems, A.elems, A.rows*A.cols*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( b.elems, B.elems, B.rows*B.cols*sizeof(float), cudaMemcpyHostToDevice );
+
+    dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 numBlocks(C.cols/threadsPerBlock.x, C.rows/threadsPerBlock.y);
+
+    int NSubBlocks = A.cols/BLOCK_SIZE;
+    MatMulNaiveKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
+
+    cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
+
+    a.free();
+    b.free();
+    c.free();
+
+}
+
 void GPUMatMul(Matrix A, Matrix B, Matrix C)
 {
     Matrix a(A.rows, A.cols, MemoryLocationGPU);
@@ -113,7 +136,6 @@ void GPUMatMul(Matrix A, Matrix B, Matrix C)
     dim3 numBlocks(C.cols/threadsPerBlock.x, C.rows/threadsPerBlock.y);
 
     int NSubBlocks = A.cols/BLOCK_SIZE;
-    printf("NSubBlock = %d\n", NSubBlocks);
     MatMulKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
 
     cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
