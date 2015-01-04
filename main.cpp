@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    int N = atoi(argv[1]);
+    int N = 64;
 
     Matrix *A = new Matrix(N, N, MemoryLocationCPU);
     Matrix *B = new Matrix(N, N, MemoryLocationCPU);
@@ -30,8 +30,14 @@ int main(int argc, char **argv)
 	}
     }
 
+    std::cout << "Starting CPU Matrix Multiplication" << std::endl;
     CPUMatMul(*A, *B, *C);
+    std::cout << "Done on CPU" << std::endl;
+    std::cout << "Starting GPU Matrix Multiplication" << std::endl;
     GPUMatMul(*A, *B, *D);
+    std::cout << "Done on GPU" << std::endl;
+
+    std::cout << "Comparing both results" << std::endl;
 
     for( int i = 0; i < A->cols; i++ )
     {
@@ -41,7 +47,7 @@ int main(int argc, char **argv)
 		C->elems[i*C->rows + j], 
 		D->elems[i*D->rows + j], 
 		C->elems[i*C->rows + j] - D->elems[i*D->rows + j] );
-	    assert( C->elems[i*C->rows + j] == D->elems[i*D->rows + j] );
+	    assert( fabs(C->elems[i*C->rows + j] - D->elems[i*D->rows + j]) < 1.0e-5 );
 	}
     }
     std::cout << "Assertion did not fail." << std::endl;

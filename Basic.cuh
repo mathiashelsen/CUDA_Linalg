@@ -6,5 +6,6 @@
 
 __global__ void MatAddKernel(Matrix A, Matrix B, Matrix C);
 __global__ void MatMulNaiveKernel(Matrix A, Matrix B, Matrix C);
+__global__ void MatMulKernel(Matrix A, Matrix B, Matrix C);
 
 #endif

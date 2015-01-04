@@ -1,6 +1,8 @@
 #include "Basic.h"
 #include "Basic.cuh"
 
+#define BLOCK_SIZE 16
+
 __global__ void MatAddKernel(Matrix A, Matrix B, Matrix C)
 {
     if( A.rows != B.rows)
@@ -35,6 +37,34 @@ __global__ void MatMulNaiveKernel(Matrix A, Matrix B, Matrix C)
 	}
 	C.elems[row + col*C.rows] = sum;
     }
+}
+
+__global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
+{
+    int NSubBlocks = A.cols/BLOCK_SIZE;
+    float sum = 0.0;
+
+    int col = threadIdx.x + blockIdx.x*blockDim.x;
+    int row = threadIdx.y + blockIdx.y*blockDim.y;
+
+    // For each sub-matrix perform the calculations
+    for( int block = 0; block < NSubBlocks; block++ )
+    {
+	__shared__ float As[BLOCK_SIZE*BLOCK_SIZE];
+	__shared__ float Bs[BLOCK_SIZE*BLOCK_SIZE];
+	As[threadIdx.y + threadIdx.x*BLOCK_SIZE] = A.elems[row + (threadIdx.x + block*BLOCK_SIZE)*A.rows];
+	Bs[threadIdx.y + threadIdx.x*BLOCK_SIZE] = B.elems[(threadIdx.y + block*BLOCK_SIZE) + col*B.rows];
+
+	__syncthreads();
+	for(int i = 0; i < BLOCK_SIZE; i++)
+	{
+	    sum += As[threadIdx.y + i*BLOCK_SIZE]*Bs[i + threadIdx.x*BLOCK_SIZE];
+	}
+
+	__syncthreads();
+    }
+    C.elems[row + col*C.rows] = sum;
+
 }
 
 void GPUMatAdd(Matrix A, Matrix B, Matrix C)
@@ -79,10 +109,12 @@ void GPUMatMul(Matrix A, Matrix B, Matrix C)
     cudaMemcpy( a.elems, A.elems, A.rows*A.cols*sizeof(float), cudaMemcpyHostToDevice );
     cudaMemcpy( b.elems, B.elems, B.rows*B.cols*sizeof(float), cudaMemcpyHostToDevice );
 
-    dim3 threadsPerBlock(16, 16);
-    dim3 numBlocks(C.cols/threadsPerBlock.x + 1, C.rows/threadsPerBlock.y + 1);
+    dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 numBlocks(C.cols/threadsPerBlock.x, C.rows/threadsPerBlock.y);
 
-    MatMulNaiveKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
+    int NSubBlocks = A.cols/BLOCK_SIZE;
+    printf("NSubBlock = %d\n", NSubBlocks);
+    MatMulKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
 
     cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
 
