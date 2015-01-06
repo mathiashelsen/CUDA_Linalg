@@ -13,7 +13,7 @@ __global__ void MatAddKernel(Matrix A, Matrix B, Matrix C)
     int col = threadIdx.x + blockIdx.x * blockDim.x;
     int row = threadIdx.y + blockIdx.y * blockDim.y; 
     if( (col < C.cols) && (row < C.rows) )
-	C.elems[row + col*C.rows] = A.elems[row + col*A.rows] + B.elems[row + col*B.rows];
+	C.elems[col + row*C.cols] = A.elems[col + row*A.cols] + B.elems[col + row*B.cols];
 }
 
 __global__ void MatMulNaiveKernel(Matrix A, Matrix B, Matrix C)
@@ -33,9 +33,9 @@ __global__ void MatMulNaiveKernel(Matrix A, Matrix B, Matrix C)
 	float sum = 0.0;
 	for( i = 0; i < A.cols; i++ )	
 	{
-	    sum += A.elems[row + i*A.rows]*B.elems[col*B.rows + i];
+	    sum += A.elems[i + row*A.cols]*B.elems[i*B.cols + col];
 	}
-	C.elems[row + col*C.rows] = sum;
+	C.elems[col + row*C.cols] = sum;
     }
 }
 
@@ -46,25 +46,28 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
 
     int col = threadIdx.x + blockIdx.x*blockDim.x;
     int row = threadIdx.y + blockIdx.y*blockDim.y;
+    int blockCol = threadIdx.x;
+    int blockRow = threadIdx.y;
 
     // For each sub-matrix perform the calculations
     for( int block = 0; block < NSubBlocks; block++ )
     {
 	__shared__ float As[BLOCK_SIZE*BLOCK_SIZE];
 	__shared__ float Bs[BLOCK_SIZE*BLOCK_SIZE];
-	As[threadIdx.y + threadIdx.x*BLOCK_SIZE] = A.elems[row + (threadIdx.x + block*BLOCK_SIZE)*A.rows];
-	Bs[threadIdx.y + threadIdx.x*BLOCK_SIZE] = B.elems[(threadIdx.y + block*BLOCK_SIZE) + col*B.rows];
+
+	As[blockCol + blockRow*BLOCK_SIZE] = A.elems[(blockCol + block*BLOCK_SIZE) + row*A.cols];
+	// Read in transposed matrix
+	Bs[blockRow + blockCol*BLOCK_SIZE] = B.elems[col + (blockRow + block*BLOCK_SIZE)*B.cols];
 
 	__syncthreads();
 	for(int i = 0; i < BLOCK_SIZE; i++)
 	{
-	    sum += As[threadIdx.y + i*BLOCK_SIZE]*Bs[i + threadIdx.x*BLOCK_SIZE];
+	    sum += As[i + blockRow*BLOCK_SIZE]*Bs[i + blockCol*BLOCK_SIZE];
 	}
 
 	__syncthreads();
     }
-    C.elems[row + col*C.rows] = sum;
-
+    C.elems[col + row*C.cols] = sum;
 }
 
 void GPUMatAdd(Matrix A, Matrix B, Matrix C)
@@ -91,11 +94,11 @@ void GPUMatAdd(Matrix A, Matrix B, Matrix C)
 void CPUMatAdd(Matrix A, Matrix B, Matrix C)
 {
     int i = 0, j = 0; 
-    for( i = 0; i < A.cols; i++ )
+    for( i = 0; i < A.rows; i++ )
     {
-	for( j = 0; j < A.rows; j++ )
+	for( j = 0; j < A.cols; j++ )
 	{
-	    C.elems[j + i*A.rows] = A.elems[j + i*A.rows] + B.elems[j + i*A.rows];
+	    C.elems[j + i*A.cols] = A.elems[j + i*A.cols] + B.elems[j + i*A.cols];
 	}
     }
 }
@@ -112,7 +115,6 @@ void GPUMatMulNaive(Matrix A, Matrix B, Matrix C)
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 numBlocks(C.cols/threadsPerBlock.x, C.rows/threadsPerBlock.y);
 
-    int NSubBlocks = A.cols/BLOCK_SIZE;
     MatMulNaiveKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
 
     cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
@@ -135,7 +137,6 @@ void GPUMatMul(Matrix A, Matrix B, Matrix C)
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 numBlocks(C.cols/threadsPerBlock.x, C.rows/threadsPerBlock.y);
 
-    int NSubBlocks = A.cols/BLOCK_SIZE;
     MatMulKernel<<<numBlocks, threadsPerBlock>>>(a, b, c);
 
     cudaMemcpy( C.elems, c.elems, C.rows*C.cols*sizeof(float), cudaMemcpyDeviceToHost);
@@ -145,20 +146,3 @@ void GPUMatMul(Matrix A, Matrix B, Matrix C)
     c.free();
 }
 
-void CPUMatMul(Matrix A, Matrix B, Matrix C)
-{
-    int row = 0, col = 0;
-    for( col = 0; col < C.cols; col++ )
-    {
-	for( row = 0; row < C.rows; row++ )
-	{
-	    float sum = 0.0;
-	    int i = 0;
-	    for( i = 0; i < A.cols; i++ )
-	    {
-		sum += A.elems[i*A.rows + row]*B.elems[col*B.rows + i];
-	    }
-	    C.elems[col*C.rows + row] = sum;
-	}
-    }
-}

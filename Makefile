@@ -57,18 +57,18 @@
 ##==========================================================================
 
 # The pre-processor and compiler options.
-MY_CFLAGS = -I/usr/local/cuda-6.5/include -I.
+MY_CFLAGS = -I/usr/local/cuda-6.5/include -I. -O2 -fopenmp
 
-MY_CUFLAGS = -g
+MY_CUFLAGS = -Xcompiler -fopenmp
 
 # The linker options.
 MY_LIBS   =
 
 # The pre-processor options used by the cpp (man cpp for more).
-CPPFLAGS  =
+CPPFLAGS  = -O2
 
 # The options used in linking as well as in any direct use of ld.
-LDFLAGS   = -lm -L/usr/local/cuda-6.5/lib64
+LDFLAGS   = -lm -L/usr/local/cuda-6.5/lib64 -lgomp
 # The directories in which source files reside.
 # If not specified, only the current directory will be serached.
 SRCDIRS   = .

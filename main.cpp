@@ -42,9 +42,9 @@ int main(int argc, char **argv)
 
     std::cout << "Starting CPU Matrix Multiplication" << std::endl;
     start = GetTimeStamp();
-    CPUMatMul(*A, *B, *C);
+    CPUMatMulNaive(*A, *B, *C);
     stop = GetTimeStamp();
-    std::cout << "Done on CPU, runtime = " << stop-start << " us" << std::endl;
+    std::cout << "Done on CPU, runtime = " << (stop-start)<< " s" << std::endl;
 
 
     std::cout << "Starting GPU Matrix Multiplication" << std::endl;
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     start = GetTimeStamp();
     GPUMatMulNaive(*A, *B, *E);
     stop = GetTimeStamp();
-    std::cout << "Done on GPU, runtime = " << stop-start << " us" << std::endl;
+    std::cout << "Done on GPU, runtime = " << (stop-start)<< " s" << std::endl;
 
     std::cout << "Comparing both results" << std::endl;
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 		C->elems[i*C->rows + j], 
 		D->elems[i*D->rows + j], 
 		C->elems[i*C->rows + j] - D->elems[i*D->rows + j] );*/
-	    assert( fabs(C->elems[i*C->rows + j] - D->elems[i*D->rows + j]) < 1.0e-3 );
+	    assert( fabs(C->elems[j*C->cols + i] - D->elems[j*D->cols + i]) < 1.0e-3 );
 	}
     }
     std::cout << "Assertion did not fail." << std::endl;
