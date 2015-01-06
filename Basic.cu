@@ -57,12 +57,12 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
 
 	As[blockCol + blockRow*BLOCK_SIZE] = A.elems[(blockCol + block*BLOCK_SIZE) + row*A.cols];
 	// Read in transposed matrix
-	Bs[blockRow + blockCol*BLOCK_SIZE] = B.elems[col + (blockRow + block*BLOCK_SIZE)*B.cols];
+	Bs[blockCol + blockRow*BLOCK_SIZE] = B.elems[col + (blockRow + block*BLOCK_SIZE)*B.cols];
 
 	__syncthreads();
 	for(int i = 0; i < BLOCK_SIZE; i++)
 	{
-	    sum += As[i + blockRow*BLOCK_SIZE]*Bs[i + blockCol*BLOCK_SIZE];
+	    sum += As[i + blockRow*BLOCK_SIZE]*Bs[blockCol + i*BLOCK_SIZE];
 	}
 
 	__syncthreads();

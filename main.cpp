@@ -43,6 +43,7 @@ int main(int argc, char **argv)
     std::cout << "Starting CPU Matrix Multiplication" << std::endl;
     start = GetTimeStamp();
     CPUMatMulNaive(*A, *B, *C);
+    CPUMatMulNaive(*A, *B, *C);
     stop = GetTimeStamp();
     std::cout << "Done on CPU, runtime = " << (stop-start)<< " s" << std::endl;
 
@@ -50,11 +51,13 @@ int main(int argc, char **argv)
     std::cout << "Starting GPU Matrix Multiplication" << std::endl;
     start = GetTimeStamp();
     GPUMatMul(*A, *B, *D);
+    GPUMatMul(*A, *B, *D);
     stop = GetTimeStamp();
     std::cout << "Done on GPU, runtime = " << stop-start << " us" << std::endl;
 
     std::cout << "Starting Naive GPU Matrix Multiplication" << std::endl;
     start = GetTimeStamp();
+    GPUMatMulNaive(*A, *B, *E);
     GPUMatMulNaive(*A, *B, *E);
     stop = GetTimeStamp();
     std::cout << "Done on GPU, runtime = " << (stop-start)<< " s" << std::endl;
